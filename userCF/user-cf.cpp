@@ -119,26 +119,25 @@ public:
         }
         size_t nUsers = data.size();
         size_t nItems = data.front().size();
-        vec_t<double> averageScore(nUsers, 0);
         mat_t<double> similarityMatrix(nUsers, vec_t<double>(nUsers, 0));
-        mat_t<int> scoredFilms(nUsers);
 
-        // 计算每个用户的平均分和评分过的电影列表
-        for (size_t user = 0; user < nUsers; user++) {
-            double sumScore = 0;
-            int count = 0;
-            for (size_t film = 0; film < nItems; film++) {
-                if (data[user][film] != 0) {
-                    sumScore += data[user][film];
-                    scoredFilms[user].emplace_back(film);
-                    count++;
-                }
-            }
-            averageScore[user] = count > 0 ? sumScore / count : 0;
-        }
-
-// 计算用户间的皮尔逊相似度
+        // 计算用户间的皮尔逊相似度
         [[maybe_unused]] auto computeUserPearsonSimilarity = [&](size_t user1, size_t user2) {
+            // 计算每个用户的平均分和评分过的电影列表
+            vec_t<double> averageScore(nUsers, 0);
+            mat_t<int> scoredFilms(nUsers);
+            for (size_t user = 0; user < nUsers; user++) {
+                double sumScore = 0;
+                int count = 0;
+                for (size_t film = 0; film < nItems; film++) {
+                    if (data[user][film] != 0) {
+                        sumScore += data[user][film];
+                        scoredFilms[user].emplace_back(film);
+                        count++;
+                    }
+                }
+                averageScore[user] = count > 0 ? sumScore / count : 0;
+            }
             const auto &films1 = scoredFilms[user1];
             const auto &films2 = scoredFilms[user2];
             vec_t<int> commonFilms;
@@ -254,7 +253,9 @@ int main() {
 
     std::cout << "when testing userCF\n";
     auto t0 = std::chrono::system_clock::now();
-    UserCF userCf("./data/ratings.dat", 80, 5);
+    std::cout <<"nSimilar : 50 , nRecommend : 5\n";
+    UserCF userCf("./data/ratings.dat", 50, 5);
+
     auto t1 = std::chrono::system_clock::now();
     std::cout << "hit-rate = " << userCf.test() << '\n';
     auto t2 = std::chrono::system_clock::now();

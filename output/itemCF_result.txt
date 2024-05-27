@@ -1,4 +1,5 @@
 when testing itemCF
-hit-rate = 0.184801
-0.649s for loading data
-3.085s for testing hit rate
+nSimilar : 50 , nRecommend : 5
+hit-rate = 0.218709
+0.69s for loading data
+5.457s for testing hit rate

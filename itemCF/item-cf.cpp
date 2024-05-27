@@ -242,7 +242,9 @@ int main(){
     freopen(outputFile,"w",stdout);
     std::cout <<"when testing itemCF\n";
     auto t0 = std::chrono::system_clock::now();
-    ItemCF itemCf("./data/ratings.dat", 20, 10);
+    std::cout <<"nSimilar : 50 , nRecommend : 5\n";
+    ItemCF itemCf("./data/ratings.dat", 50, 5);
+
     auto t1 = std::chrono::system_clock::now();
     std::cout << "hit-rate = " << itemCf.test() << '\n';
     auto t2 = std::chrono::system_clock::now();
