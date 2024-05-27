@@ -1,0 +1,3 @@
+"C:\Program Files\JetBrains\CLion 2023.2.1\bin\cmake\win\x64\bin\cmake.exe" -E rm -f CMakeFiles\userCF.dir/objects.a
+C:\PROGRA~1\JETBRA~1\CLION2~1.1\bin\mingw\bin\ar.exe qc CMakeFiles\userCF.dir/objects.a @CMakeFiles\userCF.dir\objects1.rsp
+C:\PROGRA~1\JETBRA~1\CLION2~1.1\bin\mingw\bin\G__~1.EXE -O3 -DNDEBUG -Wl,--whole-archive CMakeFiles\userCF.dir/objects.a -Wl,--no-whole-archive -o userCF.exe -Wl,--out-implib,libuserCF.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\userCF.dir\linkLibs.rsp

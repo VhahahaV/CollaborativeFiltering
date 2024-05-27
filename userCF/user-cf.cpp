@@ -1,6 +1,3 @@
-//
-// Created by CZQ on 2024/5/27.
-//
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -11,68 +8,54 @@
 #include <charconv>
 #include <chrono>
 #include <unordered_set>
-//item nums : 3952
-//user nums : 6040
+#include <numeric>
 
 using namespace std;
 
-vector<string_view> split(const string_view &str, const char s){
+vector<string_view> split(const string_view &str, const char s) {
     vector<string_view> result;
-    int i = 0 , j = 0;
-    for(;j < str.size(); j++){
-        if(str[j] == s){
-            result.emplace_back(str.substr(i,j-i));
-            i = j+1;
+    size_t i = 0, j = 0;
+    for (; j < str.size(); j++) {
+        if (str[j] == s) {
+            result.emplace_back(str.substr(i, j - i));
+            i = j + 1;
         }
     }
-    result.emplace_back(str.substr(i,j-i));
+    result.emplace_back(str.substr(i, j - i));
     return result;
 }
 
 template<typename T> using vec_t = std::vector<T>;
 template<typename T> using mat_t = std::vector<std::vector<T>>;
-template<typename T>
-std::ostream& loadDisk(std::ostream& f, const mat_t<T>& scores){
-    for(auto userScore: scores){
-        for(size_t i=0; i<userScore.size(); i++){
-            f << userScore[i];
-            if(i+1!=userScore.size()){
-                f << ',';
-            } else{
-                f << '\n';
-            }
-        }
-    }
-    return f;
-}
 
-class UserCF{
+class UserCF {
 private:
     const int mNSimilar, mNRecommend;
     mat_t<int> mData;
     mat_t<int> mTrainSet, mTestSet;
     mat_t<double> mTrainSimilarMatrix;
     static const int gUserNum = 6040;
-    static const int gItemNum =3952;
+    static const int gItemNum = 3952;
+
 public:
-    UserCF(const std::string& dataPath, int nSimilar, int nRecommend):
-            mNSimilar(nSimilar), mNRecommend(nRecommend){
+    UserCF(const std::string &dataPath, int nSimilar, int nRecommend) :
+            mNSimilar(nSimilar), mNRecommend(nRecommend) {
         std::ifstream f(dataPath, std::ios::in);
-        if(!f.good()){
-            throw std::runtime_error("open file '"+dataPath+"' error");
+        if (!f.good()) {
+            throw std::runtime_error("open file '" + dataPath + "' error");
         }
         std::string line;
         int lastUserId = 1;
         int curUserId;
-        auto parseLine = [&](const std::string& cur)->vec_t<int> {
-            auto datItem = split(cur,':');
+        auto parseLine = [&](const std::string &cur) -> vec_t<int> {
+            auto datItem = split(cur, ':');
             vec_t<int> res;
-            for(auto i : datItem){
+            for (auto i: datItem) {
                 int num;
-                if(i.empty())
+                if (i.empty())
                     continue;
-                auto err = std::from_chars(i.data(),i.data()+i.size(),num);
-                if(err.ec == std::errc::invalid_argument){
+                auto err = std::from_chars(i.data(), i.data() + i.size(), num);
+                if (err.ec == std::errc::invalid_argument) {
                     f.close();
                     throw std::runtime_error("data parse error");
                 }
@@ -81,33 +64,30 @@ public:
             return res;
         };
 
-        vec_t<int> userInfo;
-        userInfo.resize(gItemNum,0);
+        vec_t<int> userInfo(gItemNum, 0);
 
-        while (getline(f,line)){
+        while (getline(f, line)) {
             auto parsedInfo = parseLine(line);
             curUserId = parsedInfo[0];
-            if(curUserId != lastUserId){
+            if (curUserId != lastUserId) {
                 lastUserId = curUserId;
                 mData.emplace_back(userInfo);
-                userInfo.clear();
-                userInfo.resize(gItemNum,0);
+                fill(userInfo.begin(), userInfo.end(), 0);
             }
-            userInfo.at(parsedInfo[1]-1) = parsedInfo[2];
+            userInfo.at(parsedInfo[1] - 1) = parsedInfo[2];
         }
         mData.emplace_back(userInfo);
-        userInfo.clear();
-        if(mData.size() != gUserNum){
+        if (mData.size() != gUserNum) {
             cout << mData.size() << " vs " << gUserNum;
             f.close();
             throw std::runtime_error("broken dat");
         }
         f.close();
         std::tie(mTrainSet, mTestSet) = divideDataset(mData, 90);
-
     }
-    static std::tuple<mat_t<int>, mat_t<int>> divideDataset[[nodiscard]](const mat_t<int>& data, int pivot){
-        if(pivot < 0 || pivot > 100){
+
+    static std::tuple<mat_t<int>, mat_t<int>> divideDataset(const mat_t<int> &data, int pivot) {
+        if (pivot < 0 || pivot > 100) {
             throw std::runtime_error("pivot should in [0, 100]");
         }
         const size_t nItems = data.front().size();
@@ -118,18 +98,13 @@ public:
         trainSet.reserve(nUsers);
         testSet.reserve(nUsers);
 
-        for(const auto& d: data){
-            vec_t<int> trainLine, testLine;
-            trainLine.reserve(nItems);
-            testSet.reserve(nItems);
-            for(auto score: d){
-                bool belongTrain = distribution(randomEngine) < pivot;
-                if(belongTrain){
-                    trainLine.emplace_back(score);
-                    testLine.emplace_back(0);
+        for (const auto &d: data) {
+            vec_t<int> trainLine(nItems, 0), testLine(nItems, 0);
+            for (size_t i = 0; i < nItems; i++) {
+                if (distribution(randomEngine) < pivot) {
+                    trainLine[i] = d[i];
                 } else {
-                    trainLine.emplace_back(0);
-                    testLine.emplace_back(score);
+                    testLine[i] = d[i];
                 }
             }
             trainSet.emplace_back(std::move(trainLine));
@@ -138,119 +113,130 @@ public:
         return {trainSet, testSet};
     }
 
-//    使用Pearson相似度，参考链接：https://blog.csdn.net/duyibo123/article/details/110915485
-    static mat_t<double> calculateSimilarity(const mat_t<int>& data){
-        if(data.empty()){
+    static mat_t<double> calculateSimilarity(const mat_t<int> &data) {
+        if (data.empty()) {
             throw std::runtime_error("empty data");
         }
         size_t nUsers = data.size();
         size_t nItems = data.front().size();
-        vec_t<double> averageScore;
-        averageScore.reserve(nUsers);
-        mat_t<double> similarityMatrix(nUsers,vec_t<double>(nUsers,0));
-        mat_t<int> scoredFilms;
-        scoredFilms.reserve(nUsers);
-        for(auto &user : data){
-            if(user.size() != nItems){
-                throw std::runtime_error("invalid data");
-            }
+        vec_t<double> averageScore(nUsers, 0);
+        mat_t<double> similarityMatrix(nUsers, vec_t<double>(nUsers, 0));
+        mat_t<int> scoredFilms(nUsers);
+
+        // 计算每个用户的平均分和评分过的电影列表
+        for (size_t user = 0; user < nUsers; user++) {
             double sumScore = 0;
-            vec_t<int> filmItem;
-            for(size_t film=0; film < nItems; film++){
-                if(user[film] != 0){
-                    sumScore += user[film];
-                    filmItem.emplace_back(film);
+            int count = 0;
+            for (size_t film = 0; film < nItems; film++) {
+                if (data[user][film] != 0) {
+                    sumScore += data[user][film];
+                    scoredFilms[user].emplace_back(film);
+                    count++;
                 }
             }
-            averageScore.emplace_back(sumScore/double (filmItem.size()));
-            scoredFilms.emplace_back(filmItem);
+            averageScore[user] = count > 0 ? sumScore / count : 0;
         }
-        for(int user1 = 0 ; user1 < nUsers ; user1++)
-            for(int user2 = 0 ; user2 < nUsers ; user2++){
-                if(user1 == user2) continue;
-                vec_t<int> sameFilm;
-                auto &film1 = scoredFilms[user1],&film2 = scoredFilms[user2];
-                int i = 0 , j = 0;
-                while (i < film1.size() && j < film2.size()){
-                    if (film1[i] < film2[j])
-                        i++;
-                    else if(film1[i] > film2[j])
-                        j++;
-                    else{
-                        sameFilm.emplace_back(film1[i]);
-                        i++,j++;
-                    }
-                }
-                double denominator = 0 , numerator1 = 0 , numerator2 = 0;
-                for(auto film : sameFilm){
-                    auto diff1 = data[user1][film] - averageScore[user1];
-                    auto diff2 = data[user2][film] - averageScore[user2];
-                    denominator += diff1 * diff2;
-                    numerator1 += diff1 * diff1;
-                    numerator2 += diff2 * diff2;
-                }
-                if (numerator1 == 0 || numerator2 == 0)
-                    similarityMatrix[user1][user2] = 0;
-                else
-                    similarityMatrix[user1][user2] = denominator / sqrt(numerator1 * numerator2);
+
+// 计算用户间的皮尔逊相似度
+        [[maybe_unused]] auto computeUserPearsonSimilarity = [&](size_t user1, size_t user2) {
+            const auto &films1 = scoredFilms[user1];
+            const auto &films2 = scoredFilms[user2];
+            vec_t<int> commonFilms;
+            set_intersection(films1.begin(), films1.end(), films2.begin(), films2.end(), back_inserter(commonFilms));
+
+            double numerator = 0, denominator1 = 0, denominator2 = 0;
+            for (const auto &film: commonFilms) {
+                double diff1 = data[user1][film] - averageScore[user1];
+                double diff2 = data[user2][film] - averageScore[user2];
+                numerator += diff1 * diff2;
+                denominator1 += diff1 * diff1;
+                denominator2 += diff2 * diff2;
             }
+
+            double similarity = (denominator1 == 0 || denominator2 == 0) ? 0 : numerator / sqrt(denominator1 * denominator2);
+            similarityMatrix[user1][user2] = similarity;
+            similarityMatrix[user2][user1] = similarity;
+        };
+
+        // 计算用户间的余弦相似度
+        [[maybe_unused]] auto computeUserCosineSimilarity = [&](size_t user1, size_t user2) {
+            double numerator = 0, denominator1 = 0, denominator2 = 0;
+            for (size_t film = 0; film < nItems; film++) {
+                double score1 = data[user1][film];
+                double score2 = data[user2][film];
+                numerator += score1 * score2;
+                denominator1 += score1 * score1;
+                denominator2 += score2 * score2;
+            }
+
+            double similarity = (denominator1 == 0 || denominator2 == 0) ? 0 : numerator / (sqrt(denominator1) * sqrt(denominator2));
+            similarityMatrix[user1][user2] = similarity;
+            similarityMatrix[user2][user1] = similarity;
+        };
+
+        for (size_t user1 = 0; user1 < nUsers; user1++) {
+            for (size_t user2 = user1 + 1; user2 < nUsers; user2++) {
+                computeUserCosineSimilarity(user1,user2);
+            }
+        }
+
         return similarityMatrix;
     }
 
-    mat_t<std::pair<double, size_t>> getKSimilarMatrix [[nodiscard]](const mat_t<double>& similarMatrix) const{
+
+    [[nodiscard]] mat_t<std::pair<double, size_t>> getKSimilarMatrix(const mat_t<double> &similarMatrix) const {
         const size_t nUsers = similarMatrix.size();
-        mat_t<std::pair<double, size_t>> result;
-        result.reserve(nUsers);
-        for(auto& simUsers: similarMatrix){
+        mat_t<std::pair<double, size_t>> result(nUsers);
+
+        for (size_t user = 0; user < nUsers; user++) {
             std::vector<std::pair<double, size_t>> kSimUsers;
-            kSimUsers.reserve(nUsers);
-            for(size_t user=0; user<nUsers; user++){
-                kSimUsers.emplace_back(simUsers[user], user);
+            for (size_t other = 0; other < nUsers; other++) {
+                if (user != other) {
+                    kSimUsers.emplace_back(similarMatrix[user][other], other);
+                }
             }
-            std::sort(kSimUsers.begin(), kSimUsers.end(), std::greater<>());
-            kSimUsers.resize(mNSimilar);
-            result.emplace_back(std::move(kSimUsers));
+            std::partial_sort(kSimUsers.begin(), kSimUsers.begin() + mNSimilar, kSimUsers.end(), std::greater<>());
+            result[user] = vec_t<std::pair<double, size_t>>(kSimUsers.begin(), kSimUsers.begin() + mNSimilar);
         }
         return result;
     }
 
-    std::vector<std::pair<double, size_t>> recommend [[nodiscard]](
-            const mat_t<std::pair<double, size_t>>& kSimilarMatrix,const int &user) const {
+    [[nodiscard]] std::vector<std::pair<double, size_t>> recommend(const mat_t<std::pair<double, size_t>> &kSimilarMatrix, const int &user) const {
         auto &simUsers = kSimilarMatrix[user];
         auto &userScore = mTrainSet[user];
         const size_t nFilms = userScore.size();
         std::unordered_set<int> watchedFilm;
-        for(int film = 0 ; film < nFilms ; film++)
-            if(userScore[film]) watchedFilm.insert(film);
-        std::vector<std::pair<double, size_t>> relatedFilms;
+        for (int film = 0; film < nFilms; film++)
+            if (userScore[film]) watchedFilm.insert(film);
         std::vector<double> filmScore(nFilms);
-        for(auto &[weight,other] : simUsers){
+        for (auto &[weight, other]: simUsers) {
             auto &otherScores = mTrainSet[other];
-            for(int film=0; film<nFilms; film++){
-                if(watchedFilm.count(film))
+            for (int film = 0; film < nFilms; film++) {
+                if (watchedFilm.count(film))
                     continue;
                 auto score = otherScores[film];
-                if(score != 0){
-                    filmScore[film] += weight*score;
+                if (score != 0) {
+                    filmScore[film] += weight * score;
                 }
             }
         }
-        for(int i = 0 ; i < nFilms ; i++)
-            relatedFilms.emplace_back(filmScore[i],i);
-        std::sort(relatedFilms.begin(), relatedFilms.end(), std::greater<>());
+        std::vector<std::pair<double, size_t>> relatedFilms;
+        for (int i = 0; i < nFilms; i++)
+            relatedFilms.emplace_back(filmScore[i], i);
+        std::partial_sort(relatedFilms.begin(), relatedFilms.begin() + mNRecommend, relatedFilms.end(), std::greater<>());
         relatedFilms.resize(mNRecommend);
         return relatedFilms;
     }
 
-    double test[[nodiscard]]() const {
+    [[nodiscard]] double test() const {
         const size_t nUsers = mTrainSet.size();
         size_t hit = 0;
         const auto similarityMatrix = calculateSimilarity(mTrainSet);
         const auto kSimilarMatrix = getKSimilarMatrix(similarityMatrix);
-        for(size_t user=0; user<nUsers; user++){
+        for (size_t user = 0; user < nUsers; user++) {
             auto recommendFilms = recommend(kSimilarMatrix, int(user));
-            for(auto [w, film]: recommendFilms){
-                if(mTestSet[user][film] != 0){
+            for (auto [w, film]: recommendFilms) {
+                if (mTestSet[user][film] != 0) {
                     hit += 1;
                 }
             }
@@ -259,25 +245,23 @@ public:
         double hitRate = double(hit) / double(recommendCount);
         return hitRate;
     }
-
 };
 
-
-int main(){
+int main() {
     const char *outputFile = "./output/userCF_result.txt";
     std::cout << "output to '" << outputFile << "'\n";
-    freopen(outputFile,"w",stdout);
+    freopen(outputFile, "w", stdout);
 
-    std::cout <<"when testing userCF\n";
+    std::cout << "when testing userCF\n";
     auto t0 = std::chrono::system_clock::now();
-    UserCF userCf("./data/ratings.dat", 20, 10);
+    UserCF userCf("./data/ratings.dat", 80, 5);
     auto t1 = std::chrono::system_clock::now();
     std::cout << "hit-rate = " << userCf.test() << '\n';
     auto t2 = std::chrono::system_clock::now();
 
-    auto dt1 = double(std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count()) / 1000;
-    auto dt2 = double(std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count()) / 1000;
+    auto dt1 = double(std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count()) / 1000;
+    auto dt2 = double(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()) / 1000;
 
-    std::cout << dt1 << "s for loading data\n" <<dt2 << "s for testing hit rate\n";
+    std::cout << dt1 << "s for loading data\n" << dt2 << "s for testing hit rate\n";
     return 0;
 }

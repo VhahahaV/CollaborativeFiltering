@@ -1,4 +1,4 @@
 when testing itemCF
 hit-rate = 0.184801
-6.542s for loading data
-36.365s for testing hit rate
+0.649s for loading data
+3.085s for testing hit rate

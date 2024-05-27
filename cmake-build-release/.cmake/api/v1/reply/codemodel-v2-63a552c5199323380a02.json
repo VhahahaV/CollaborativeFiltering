@@ -1,0 +1,123 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"jsonFile" : "directory-.-Release-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.9"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "itemCF",
+					"jsonFile" : "directory-itemCF-Release-30f5f6383e06237be586.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.9"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "itemCF",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "userCF",
+					"jsonFile" : "directory-userCF-Release-6720363c782e5fb81327.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.9"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "userCF",
+					"targetIndexes" : 
+					[
+						1
+					]
+				}
+			],
+			"name" : "Release",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "CollaborativeFiltering"
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "itemCF",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2
+					],
+					"name" : "userCF",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "itemCF::@8870a8a2468375414cac",
+					"jsonFile" : "target-itemCF-Release-6f319bb5d9d745e4c477.json",
+					"name" : "itemCF",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "userCF::@ce19912bdca9972f950b",
+					"jsonFile" : "target-userCF-Release-0a2aa68af322db2f41d7.json",
+					"name" : "userCF",
+					"projectIndex" : 2
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "D:/C++_code/CollaborativeFiltering/cmake-build-release",
+		"source" : "D:/C++_code/CollaborativeFiltering"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 5
+	}
+}

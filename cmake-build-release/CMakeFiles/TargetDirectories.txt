@@ -1,0 +1,8 @@
+D:/C++_code/CollaborativeFiltering/cmake-build-release/CMakeFiles/edit_cache.dir
+D:/C++_code/CollaborativeFiltering/cmake-build-release/CMakeFiles/rebuild_cache.dir
+D:/C++_code/CollaborativeFiltering/cmake-build-release/itemCF/CMakeFiles/itemCF.dir
+D:/C++_code/CollaborativeFiltering/cmake-build-release/itemCF/CMakeFiles/edit_cache.dir
+D:/C++_code/CollaborativeFiltering/cmake-build-release/itemCF/CMakeFiles/rebuild_cache.dir
+D:/C++_code/CollaborativeFiltering/cmake-build-release/userCF/CMakeFiles/userCF.dir
+D:/C++_code/CollaborativeFiltering/cmake-build-release/userCF/CMakeFiles/edit_cache.dir
+D:/C++_code/CollaborativeFiltering/cmake-build-release/userCF/CMakeFiles/rebuild_cache.dir
