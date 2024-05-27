@@ -1,0 +1,4 @@
+when testing userCF
+hit-rate = 0.0283278
+4.331s for loading data
+283.206s for testing hit rate
